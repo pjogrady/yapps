@@ -65,7 +65,7 @@ parser ParserDescription:
                    Tokens
                    Rules<<Tokens>>
                  EOF
-                 {{ return parsetree.Generator(ID,Options,Tokens,Rules) }}
+                 {{ return parsetree.Generator(ID.value,Options,Tokens,Rules) }}
 
     rule Options: {{ opt = {} }}
                   ( "option" ":" Str {{ opt[Str] = 1 }} )*
@@ -73,10 +73,10 @@ parser ParserDescription:
 
     rule Tokens:  {{ tok = [] }}
                   (
-                    "token" ID ":" Str {{ tok.append( (ID,Str) ) }}
+                    "token" ID ":" Str {{ tok.append( (ID.value,Str) ) }}
                   | "ignore"
 				    ":" Str {{ ign = ('#ignore',Str) }}
-				    ( STMT  {{ ign = ign + (STMT[2:-2],) }} )?
+				    ( STMT  {{ ign = ign + (STMT.value[2:-2],) }} )?
 				            {{ tok.append( ign ) }}
                   )*
                   {{ return tok }}
@@ -85,7 +85,7 @@ parser ParserDescription:
                   {{ rul = [] }}
                   (
                     "rule" ID OptParam ":" ClauseA<<ID, tokens>>
-                    {{ rul.append( (ID, OptParam, ClauseA) ) }}
+                    {{ rul.append( (ID.value, OptParam, ClauseA) ) }}
                   )*
                   {{ return rul }}
 
@@ -108,14 +108,14 @@ parser ParserDescription:
                   |      {{ return ClauseD }} )
 
     rule ClauseD<<rule,tokens>>:
-                  STR {{ t = (STR, eval(STR,{},{})) }}
+                  STR {{ t = (STR.value, eval(STR.value,{},{})) }}
                       {{ if t not in tokens: tokens.insert( 0, t ) }}
-                      {{ return parsetree.Terminal(rule, STR) }}
-                | ID OptParam {{ return resolve_name(rule,tokens, ID, OptParam) }}
+                      {{ return parsetree.Terminal(rule, STR.value) }}
+                | ID OptParam {{ return resolve_name(rule,tokens, ID.value, OptParam) }}
                 | LP ClauseA<<rule,tokens>> RP {{ return ClauseA }}
                 | LB ClauseA<<rule,tokens>> RB {{ return parsetree.Option(rule, ClauseA) }}
-                | STMT {{ return parsetree.Eval(rule, STMT[2:-2]) }}
+                | STMT {{ return parsetree.Eval(rule, STMT.value[2:-2]) }}
 
-    rule OptParam: [ ATTR {{ return ATTR[2:-2] }} ] {{ return '' }}
-    rule Str:   STR {{ return eval(STR,{},{}) }}
+    rule OptParam: [ ATTR {{ return ATTR.value[2:-2] }} ] {{ return '' }}
+    rule Str:   STR {{ return eval(STR.value,{},{}) }}
 %%

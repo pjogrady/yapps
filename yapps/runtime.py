@@ -351,7 +351,7 @@ class Scanner(object):
         if tok.type != type:
             if not self.last_types: self.last_types=[]
             raise SyntaxError(tok.pos, 'Trying to find '+type+': '+ ', '.join(self.last_types)+", got "+tok.type, context=context)
-        return tok.value
+        return tok
 
 class Parser(object):
     """Base class for Yapps-generated parsers.
